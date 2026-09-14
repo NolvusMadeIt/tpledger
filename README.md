@@ -17,11 +17,13 @@ API keys stay on the device. Bound items are never listed.
 node desktop/pack-win.mjs
 ```
 
-Output: `apps/Tyria Ledger-win32-x64/Tyria Ledger.exe` (mystic coin icon).
+Output: `apps/Tyria Ledger-win32-x64/Tyria Ledger.exe`.
+
+Windows SmartScreen will call it an **unknown publisher** until the exe is Authenticode-signed. That is not a virus warning. Until a code-signing cert is in `desktop/certs/`, click **More info → Run anyway**. See `desktop/SIGNING.md`.
 
 - Close / hotkey (`Control+Shift+L` by default) hides next to the clock.
-- Dock left or right in Options.
-- Drop plugin folders into `plugins/` beside the exe, or onto Options.
+- Dock left or right in Settings.
+- Drop plugin folders into `plugins/` beside the exe, or onto Settings.
 
 ## Plugins
 

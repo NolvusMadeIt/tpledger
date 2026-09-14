@@ -11,3 +11,7 @@ attachments
 artifacts
 apps
 .DS_Store
+*.pfx
+*.p12
+desktop/certs/*
+!desktop/certs/README.md
