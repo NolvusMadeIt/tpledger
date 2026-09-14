@@ -1,0 +1,13 @@
+{
+  "name": "drop-to-desktop",
+  "private": true,
+  "type": "module",
+  "description": "Drop a web app folder onto this kit to wrap it as a Windows or Mac desktop app.",
+  "scripts": {
+    "to-desktop": "node to-desktop.mjs"
+  },
+  "dependencies": {
+    "@electron/packager": "^18.3.6",
+    "electron": "^37.2.6"
+  }
+}

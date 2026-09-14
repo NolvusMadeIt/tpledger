@@ -1,0 +1,6 @@
+{
+  "name": "desktop-shell",
+  "private": true,
+  "type": "module",
+  "main": "main.mjs"
+}
