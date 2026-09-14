@@ -6,12 +6,11 @@
 
 <p align="center">
   Guild Wars 2 Trading Post prices, vault appraisal, and a desktop overlay.<br />
-  Paste a chat link. See the gold.
+  <strong>You do not need npm.</strong> Download the zip. Double-click the exe.
 </p>
 
 <p align="center">
-  <a href="https://github.com/NolvusMadeIt/tpledger/releases/latest"><img src="https://img.shields.io/github/v/release/NolvusMadeIt/tpledger?label=download&color=c4a056" alt="Latest release" /></a>
-  <img src="https://img.shields.io/badge/Guild%20Wars%202-Trading%20Post-6a5d45" alt="GW2" />
+  <a href="https://github.com/NolvusMadeIt/tpledger/releases/latest"><img src="https://img.shields.io/github/v/release/NolvusMadeIt/tpledger?label=Download%20Windows%20app&color=c4a056" alt="Download Windows app" /></a>
 </p>
 
 <p align="center">
@@ -20,44 +19,30 @@
 
 ---
 
-## What it does
+## Launch it (this is the app)
 
-| | |
-| --- | --- |
-| **Price Check** | Search by name, item id, or an in-game chat copy like `[4 Heads of Cabbage]` / `[&AgGNhQAA]`. Live buy, sell, and tax. |
-| **Vault** | Bank, materials, shared slots, and character bags. Bound items stay off the list. Bags start collapsed. |
-| **Fence** | What to list, what not to dump, where the stack lives, and which character has more. |
-| **Stars** | Favorite items. Totals only those. |
-| **Overlay** | Frameless window, tray next to the clock, hotkey to slide in. |
-| **Plugins** | Drop a folder in `plugins/` and it shows up in Settings. |
+1. Open **[Releases](https://github.com/NolvusMadeIt/tpledger/releases/latest)**.
+2. Download `TyriaLedger-win64.zip` — **not** the green “Code → Download ZIP” button. That one is source, not the app.
+3. Unzip the folder anywhere you want.
+4. Double-click **`Tyria Ledger.exe`**.
 
-<p align="center">
-  <img src="public/coins/gold.png" alt="gold" width="22" />
-  <img src="public/coins/silver.png" alt="silver" width="22" />
-  <img src="public/coins/copper.png" alt="copper" width="22" />
-</p>
+That’s it. No install wizard. No `npm`. No terminal.
 
----
+Windows SmartScreen may say **Unknown publisher**. **More info → Run anyway.** It is unsigned, not a virus. Notes: [`desktop/SIGNING.md`](desktop/SIGNING.md).
 
-## Get started — Windows app
+### First run
 
-1. Grab the latest zip from **[Releases](https://github.com/NolvusMadeIt/tpledger/releases/latest)** (`TyriaLedger-win64.zip`).
-2. Unzip it somewhere **you** choose. Nothing installs itself into Program Files.
-3. Run `Tyria Ledger.exe`.
-4. Windows SmartScreen may say **Unknown publisher**. That is unsigned, not a virus. **More info → Run anyway**. Signing notes: [`desktop/SIGNING.md`](desktop/SIGNING.md).
-5. Open **Vault**, paste an API key, give it a name, hit **Save & load**.
+1. Open **Vault**.
+2. Paste a GW2 API key and give it a name.
+3. **Save & load**.
 
-### API key
-
-Create one at [account.arena.net](https://account.arena.net/applications).
-
-Permissions you actually need:
+Create a key at [account.arena.net](https://account.arena.net/applications) with:
 
 - `account`
 - `inventories`
 - `characters` (bags on each toon)
 
-The key is encrypted on this machine and never shown again. There is no “view key.” Replace it if you need a new one.
+The key is encrypted on this PC and never shown again.
 
 ### Overlay
 
@@ -65,54 +50,44 @@ The key is encrypted on this machine and never shown again. There is no “view 
 | --- | --- |
 | Hotkey | `Control+Shift+L` (change in Settings) |
 | Dock | Left or right |
-| Minimize | Dash button, or Close-to-tray |
+| Minimize | Dash — hides next to the clock |
 | Close | Quits |
 
 ---
 
-## Get started — web (dev)
+## What it does
 
-```bash
-git clone https://github.com/NolvusMadeIt/tpledger.git
-cd tpledger
-npm install
-npm run dev
-```
+| | |
+| --- | --- |
+| **Price Check** | Name, item id, or an in-game copy like `[4 Heads of Cabbage]` / `[&AgGNhQAA]`. Live buy, sell, tax. |
+| **Vault** | Bank, mats, shared, character bags. Bound items stay off the list. Bags start collapsed. |
+| **Fence** | What to list, where the stack lives, which character has more. |
+| **Stars** | Favorites. Totals only those. |
+| **Plugins** | Drop a folder in `plugins/` beside the exe. |
 
-Open the URL Vite prints (usually `http://127.0.0.1:8080`). Same app, no tray / updater.
-
----
-
-## Using it
+<p align="center">
+  <img src="public/coins/gold.png" alt="gold" width="22" />
+  <img src="public/coins/silver.png" alt="silver" width="22" />
+  <img src="public/coins/copper.png" alt="copper" width="22" />
+</p>
 
 ### Price check
 
-- Type a name.
-- Paste `[4 Heads of Cabbage]` — brackets and counts are stripped.
-- Paste a chat code `[&AgGNhQAA]`. Click the code or `#id` in the tooltip to copy.
-- Empty search shows a short market pulse (top sold / selling), not a blank page.
-- Tooltips stay on screen and link the wiki.
+Paste `[4 Heads of Cabbage]` — brackets and counts are stripped. Chat codes and `#id` in the tooltip copy on click. Empty search shows a short market pulse.
 
 ### Vault
 
-- Bank / Mats / Shared / each character are accordions. **Collapsed by default.**
-- Settings → **Expand vault bags** if you want them open.
-- Stars sit above the bags and total only what you marked.
-- Fence lists tradable flips and which bag / character holds them.
+Bank / Mats / Shared / each character are accordions, **collapsed by default**. Settings → **Expand vault bags** if you want them open. Fence shows which bag and which character holds a stack.
 
 ### Updates
 
-Settings → pick a version → pick a folder → **Close and install**.
-
-You get a progress window: **Download → Unpack → Restart**. No mystery console.
-
-Versions live on `version-*` branches. Latest is at the top of the dropdown.
+Settings → pick a version → pick a folder → **Close and install**. A progress window shows Download → Unpack → Restart.
 
 ---
 
 ## Plugins
 
-Drop a folder next to the exe:
+Next to the exe:
 
 ```
 Tyria Ledger.exe
@@ -122,27 +97,30 @@ plugins/
     index.js
 ```
 
-Or drop the folder onto **Settings**. Enable it there. Bundled: **Flip Watch**, **Chat Copy**.
-
-See [`public/plugins/README.md`](public/plugins/README.md).
+Or drop the folder onto **Settings**. Bundled: **Flip Watch**, **Chat Copy**. Details: [`public/plugins/README.md`](public/plugins/README.md).
 
 ---
 
-## Build the Windows zip yourself
+## For developers only
+
+This repo is the source. If you cloned it, you still launch the **release exe** to use the app. `npm run dev` is the live web preview while you change code.
 
 ```bash
+git clone https://github.com/NolvusMadeIt/tpledger.git
+cd tpledger
 npm install
-node desktop/pack-win.mjs
+npm run dev          # web preview
+node desktop/pack-win.mjs   # rebuild the Windows zip
 ```
 
-Output: `apps/Tyria Ledger-win32-x64/`.
+Output: `apps/Tyria Ledger-win32-x64/Tyria Ledger.exe`.
 
 ---
 
 ## Privacy
 
 - API keys never leave the device except to talk to `api.guildwars2.com`.
-- Account-bound items are not listed or priced as TP stock.
+- Account-bound items are not listed as TP stock.
 - No telemetry.
 
 ---
