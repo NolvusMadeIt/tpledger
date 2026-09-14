@@ -251,8 +251,8 @@ function UpdateSection() {
     <section className="gw2-well mt-6 p-5 sm:p-6">
       <h2 className="font-display text-2xl tracking-tight">Updates</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Versions come from `version-*` branches on the repo. Latest sits at the top. You pick the folder —
-        nothing installs itself somewhere else.
+        Versions come from `version-*` branches. Close and install opens the updater window
+        so you can see download, unpack, and restart. You pick the folder.
       </p>
       <p className="mt-3 text-sm">
         Running <span className="text-coin-gold">{current}</span>

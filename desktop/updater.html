@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Tyria Ledger Updater</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #16120c; color: #e8e0cc; font: 14px/1.4 "Segoe UI", sans-serif; overflow: hidden; user-select: none; }
+    .wrap { height: 100%; padding: 18px 20px 16px; box-sizing: border-box; border: 2px solid #6a5d45; box-shadow: inset 0 1px 0 #e7d9aa44; }
+    .top { display: flex; gap: 14px; align-items: center; }
+    img { width: 56px; height: 56px; object-fit: contain; }
+    h1 { margin: 0; font-family: Georgia, serif; font-size: 1.35rem; font-weight: 600; color: #e7d9aa; letter-spacing: .06em; }
+    .sub { margin-top: 4px; color: #9a9184; font-size: 12px; }
+    .bar { margin-top: 18px; height: 12px; background: #0e0c0a; border: 1px solid #3a2e18; }
+    .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #8a6a32, #e7d9aa); transition: width .2s linear; }
+    .msg { margin-top: 10px; min-height: 1.3em; }
+    .steps { display: flex; gap: 16px; margin-top: 14px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #6a6358; }
+    .steps .on { color: #e7d9aa; }
+    .steps .done { color: #7dba98; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <img src="blacklion.png" alt="" />
+      <div>
+        <h1>Tyria Ledger</h1>
+        <div class="sub" id="sub">Preparing update…</div>
+      </div>
+    </div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="msg" id="msg">Starting…</div>
+    <div class="steps">
+      <span id="s-down">Download</span>
+      <span id="s-unpack">Unpack</span>
+      <span id="s-restart">Restart</span>
+    </div>
+  </div>
+  <script>
+    const fill = document.getElementById("fill");
+    const msg = document.getElementById("msg");
+    const sub = document.getElementById("sub");
+    const steps = {
+      downloading: "s-down",
+      installing: "s-unpack",
+      restarting: "s-restart",
+    };
+    window.setProgress = function (percent, label, state) {
+      const n = Math.max(0, Math.min(100, Number(percent) || 0));
+      fill.style.width = n + "%";
+      msg.textContent = label || "";
+      sub.textContent = state === "downloading"
+        ? "Fetching the build from the repo"
+        : state === "installing"
+          ? "Unpacking into your folder"
+          : state === "restarting"
+            ? "The app will close and come back"
+            : "Update";
+      for (const [key, id] of Object.entries(steps)) {
+        const el = document.getElementById(id);
+        el.className = key === state ? "on" : (order(key) < order(state) ? "done" : "");
+      }
+    };
+    function order(state) {
+      return { downloading: 0, installing: 1, restarting: 2 }[state] ?? -1;
+    }
+  </script>
+</body>
+</html>

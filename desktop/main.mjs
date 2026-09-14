@@ -35,9 +35,44 @@ let visible = true;
 let settings = { ...DEFAULTS };
 let watchers = [];
 let lastVersions = [];
+let updaterUi = null;
 
 function emitStatus(status) {
   win?.webContents.send("updater:status", status);
+  paintUpdater(status);
+}
+
+function paintUpdater(status) {
+  if (!updaterUi || updaterUi.isDestroyed()) return;
+  const percent = status.percent ?? 0;
+  const msg = status.message || "";
+  const state = status.state || "";
+  void updaterUi.webContents.executeJavaScript(
+    `window.setProgress(${Number(percent) || 0}, ${JSON.stringify(msg)}, ${JSON.stringify(state)})`,
+  );
+}
+
+async function showUpdaterUi() {
+  if (updaterUi && !updaterUi.isDestroyed()) {
+    updaterUi.show();
+    updaterUi.focus();
+    return updaterUi;
+  }
+  updaterUi = new BrowserWindow({
+    width: 440,
+    height: 228,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    frame: false,
+    alwaysOnTop: true,
+    backgroundColor: "#16120c",
+    icon: iconPath(),
+    webPreferences: { sandbox: true, contextIsolation: true },
+  });
+  updaterUi.setMenu(null);
+  await updaterUi.loadFile(path.join(here, "updater.html"));
+  return updaterUi;
 }
 
 function loadSettings() {
@@ -99,7 +134,7 @@ function readPlugins() {
         seen.add(id);
         out.push({ id, dir, manifest, code: fs.readFileSync(codePath, "utf8") });
       } catch {
-        /* skip broken plugin */
+        /* skip */
       }
     }
   }
@@ -277,6 +312,7 @@ async function createWindow() {
     },
   });
   win.setMenuBarVisibility(false);
+  win.setMenu(null);
   applyWindow();
   const target = app.isPackaged ? url : process.env.LEDGER_URL || "http://127.0.0.1:8080";
   try {
@@ -306,12 +342,7 @@ async function runUpdateCheck() {
       emitStatus({ state: "ready", message: `${target.label} is ready.` });
       if (settings.autoUpdate) {
         toastUpdate(target, () => {
-          void installVersion({
-            version: target,
-            installDir: settings.installDir || path.dirname(process.execPath),
-            token: settings.githubToken,
-            onStatus: emitStatus,
-          });
+          void runInstall(target.id).catch(() => {});
         });
       }
       return target;
@@ -322,6 +353,28 @@ async function runUpdateCheck() {
     emitStatus({ state: "error", message: err instanceof Error ? err.message : "Check failed." });
     return null;
   }
+}
+
+async function runInstall(id) {
+  const versions = lastVersions.length ? lastVersions : await listVersions(settings.githubToken);
+  lastVersions = versions;
+  const version = pickTarget(versions, id || settings.preferredVersion);
+  if (!version) throw new Error("No version to install.");
+  if (!version.downloadUrl) throw new Error("That version has no Windows build yet.");
+  const dir = settings.installDir || (app.isPackaged ? path.dirname(process.execPath) : "");
+  if (!dir) throw new Error("Pick a folder first.");
+  settings.installDir = dir;
+  settings.tray = false;
+  saveSettings();
+  win?.removeAllListeners("close");
+  await showUpdaterUi();
+  hidePanel();
+  await installVersion({
+    version,
+    installDir: dir,
+    token: settings.githubToken,
+    onStatus: emitStatus,
+  });
 }
 
 ipcMain.handle("desktop:getSettings", () => settings);
@@ -339,6 +392,10 @@ ipcMain.handle("plugins:openFolder", async () => {
 });
 ipcMain.handle("desktop:hide", () => {
   hidePanel();
+});
+ipcMain.handle("desktop:quit", () => {
+  settings.tray = false;
+  app.exit(0);
 });
 ipcMain.on("desktop:clickThrough", (_e, on) => {
   win?.setIgnoreMouseEvents(Boolean(on), { forward: true });
@@ -363,25 +420,7 @@ ipcMain.handle("updater:pickFolder", async () => {
   }
   return dir;
 });
-ipcMain.handle("updater:install", async (_e, id) => {
-  const versions = lastVersions.length ? lastVersions : await listVersions(settings.githubToken);
-  lastVersions = versions;
-  const version = pickTarget(versions, id || settings.preferredVersion);
-  if (!version) throw new Error("No version to install.");
-  if (!version.downloadUrl) throw new Error("That version has no Windows build yet.");
-  const dir = settings.installDir || (app.isPackaged ? path.dirname(process.execPath) : "");
-  if (!dir) throw new Error("Pick a folder first.");
-  settings.installDir = dir;
-  settings.tray = false;
-  saveSettings();
-  win?.removeAllListeners("close");
-  await installVersion({
-    version,
-    installDir: dir,
-    token: settings.githubToken,
-    onStatus: emitStatus,
-  });
-});
+ipcMain.handle("updater:install", (_e, id) => runInstall(id));
 ipcMain.handle("updater:check", () => runUpdateCheck());
 
 const gotLock = app.requestSingleInstanceLock();

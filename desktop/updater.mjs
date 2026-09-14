@@ -7,7 +7,7 @@ import path from "node:path";
 
 const REPO = "NolvusMadeIt/tpledger";
 const VERSION_RE = /^version[-/]v?(\d+\.\d+\.\d+)$/i;
-export const APP_VERSION = "1.0.5";
+export const APP_VERSION = "1.0.6";
 
 function ghHeaders(token) {
   const headers = {
@@ -151,6 +151,30 @@ export async function pickInstallDir(win, current) {
   return result.filePaths[0];
 }
 
+function powershellBin() {
+  return process.env.SystemRoot
+    ? path.join(process.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+    : "powershell.exe";
+}
+
+function runHiddenPowershell(script) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      powershellBin(),
+      ["-NoLogo", "-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", script],
+      { windowsHide: true, stdio: ["ignore", "pipe", "pipe"] },
+    );
+    let err = "";
+    child.stderr.on("data", (chunk) => {
+      err += chunk;
+    });
+    child.on("exit", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(err.trim() || `PowerShell exited ${code}`));
+    });
+  });
+}
+
 export async function installVersion({ version, installDir, token, onStatus }) {
   if (!version?.downloadUrl) throw new Error("That version has no Windows build yet.");
   if (!installDir) throw new Error("Pick a folder first.");
@@ -159,14 +183,19 @@ export async function installVersion({ version, installDir, token, onStatus }) {
   const zip = path.join(tmp, "TyriaLedger-win64.zip");
   onStatus?.({ state: "downloading", message: `Downloading ${version.label}…`, percent: 0 });
   await downloadFile(version.downloadUrl, zip, token, (percent) => {
-    onStatus?.({ state: "downloading", message: `Downloading ${version.label}…`, percent });
+    onStatus?.({ state: "downloading", message: `Downloading ${version.label}… ${percent}%`, percent });
   });
-  onStatus?.({ state: "installing", message: "Closing so the update can install…" });
+  onStatus?.({ state: "installing", message: "Unpacking the archive…", percent: 100 });
+  const unpack = path.join(tmp, "unpack");
+  fs.mkdirSync(unpack, { recursive: true });
+  const zipEsc = zip.replace(/'/g, "''");
+  const unpackEsc = unpack.replace(/'/g, "''");
+  await runHiddenPowershell(`Expand-Archive -LiteralPath '${zipEsc}' -DestinationPath '${unpackEsc}' -Force`);
 
+  onStatus?.({ state: "restarting", message: "Restarting Tyria Ledger…", percent: 100 });
   const job = {
     pid: process.pid,
-    zip,
-    unpack: path.join(tmp, "unpack"),
+    unpack,
     dest: installDir,
     exe: path.join(installDir, "Tyria Ledger.exe"),
     log: path.join(os.tmpdir(), "tyria-ledger-update.log"),
@@ -183,10 +212,7 @@ export async function installVersion({ version, installDir, token, onStatus }) {
       "function Log($m) { Add-Content -LiteralPath $job.log -Value ((Get-Date -Format o) + ' ' + $m) }",
       "Log ('waiting for PID ' + $job.pid)",
       "while (Get-Process -Id $job.pid -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 400 }",
-      "Start-Sleep -Milliseconds 1200",
-      "Log 'unpack'",
-      "New-Item -ItemType Directory -Force -Path $job.unpack | Out-Null",
-      "Expand-Archive -LiteralPath $job.zip -DestinationPath $job.unpack -Force",
+      "Start-Sleep -Milliseconds 800",
       "$root = Get-ChildItem -LiteralPath $job.unpack -Directory | Select-Object -First 1",
       "if ($root) { $from = Join-Path $root.FullName '*' } else { $from = Join-Path $job.unpack '*' }",
       "New-Item -ItemType Directory -Force -Path $job.dest | Out-Null",
@@ -196,20 +222,15 @@ export async function installVersion({ version, installDir, token, onStatus }) {
       "Log 'done'",
     ].join("\r\n"),
   );
-  const ps =
-    process.env.SystemRoot
-      ? path.join(process.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
-      : "powershell.exe";
-  const cmd = `"${ps}" -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "${ps1}"`;
+  const cmd = `"${powershellBin()}" -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "${ps1}"`;
   fs.writeFileSync(vbs, `CreateObject("Wscript.Shell").Run ${JSON.stringify(cmd)}, 0, False\r\n`);
-  const child = spawn("wscript.exe", ["//B", "//Nologo", vbs], {
+  spawn("wscript.exe", ["//B", "//Nologo", vbs], {
     detached: true,
     stdio: "ignore",
     windowsHide: true,
     shell: false,
-  });
-  child.unref();
-  setTimeout(() => app.exit(0), 500);
+  }).unref();
+  setTimeout(() => app.exit(0), 600);
 }
 
 export function toastUpdate(version, onClick) {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronUp, Search, Settings, Warehouse, X } from "lucide-react";
+import { ChevronUp, Minus, Search, Settings, Warehouse, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Coins } from "./coins";
 import { getGemRate } from "@/lib/gw2/functions";
@@ -75,7 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="gw2-stage text-foreground">
       <div className="gw2-frame mx-auto max-w-6xl">
-        <img src="/brand/lion.png" alt="" className="gw2-lion" />
+        <img src="/icons/blacklion.png" alt="" className="gw2-lion" />
         <div className="gw2-window">
           <header className="gw2-chrome">
             <Link to="/" className="flex min-w-0 items-end gap-2.5">
@@ -84,23 +84,29 @@ export function AppShell({ children }: { children: ReactNode }) {
               </span>
               <span className="mb-0.5 text-[13px] tracking-wide text-muted-foreground">TP</span>
             </Link>
-            <span className="ml-auto flex items-center gap-3">
+            <span className="ml-auto flex items-center gap-2">
               {gems ? (
-                <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
+                <span className="mr-2 hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
                   <span>100 gems</span>
                   <Coins copper={gems.coinsFor100Gems} size="sm" />
                 </span>
               ) : null}
-              {desktop ? (
-                <button
-                  type="button"
-                  className="gw2-close"
-                  aria-label="Close"
-                  onClick={() => void window.tyriaDesktop?.hideToTray()}
-                >
-                  <X className="size-3.5" strokeWidth={2.4} />
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className="gw2-winbtn"
+                aria-label="Minimize"
+                onClick={() => void window.tyriaDesktop?.hideToTray()}
+              >
+                <Minus className="size-3.5" strokeWidth={2.6} />
+              </button>
+              <button
+                type="button"
+                className="gw2-winbtn close"
+                aria-label="Close"
+                onClick={() => void window.tyriaDesktop?.quit()}
+              >
+                <X className="size-3.5" strokeWidth={2.6} />
+              </button>
             </span>
           </header>
 
