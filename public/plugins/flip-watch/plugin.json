@@ -1,7 +1,7 @@
 {
   "id": "flip-watch",
   "name": "Flip Watch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Tyria Ledger",
   "description": "When you price-check an item, ping if list premium beats your gold bar.",
   "entry": "index.js",
@@ -18,7 +18,15 @@
       "key": "notify",
       "type": "boolean",
       "label": "Desktop ping",
-      "default": true
+      "default": true,
+      "hint": "Toast plus a chime when the premium clears your bar."
+    },
+    {
+      "key": "sound",
+      "type": "sound",
+      "label": "Ping sound",
+      "default": "ding",
+      "hint": "Default chime, or pick a wav / mp3."
     }
   ]
 }

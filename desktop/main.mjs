@@ -185,8 +185,6 @@ function createTray() {
       break;
     }
   }
-  const sizes = image.getSize();
-  if (sizes.width > 32) image = image.resize({ width: 32, height: 32, quality: "best" });
   tray = new Tray(image);
   tray.setToolTip("Tyria Ledger");
   tray.setContextMenu(

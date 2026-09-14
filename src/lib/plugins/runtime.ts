@@ -6,9 +6,24 @@ type Running = { stop?: () => void };
 
 const running = new Map<string, Running>();
 
-function notify(title: string, body: string) {
+const DEFAULT_CHIME = "/sounds/chime.wav";
+
+function playSound(src?: string) {
+  if (typeof Audio === "undefined") return;
+  const url = !src || src === "ding" || src === "default" ? DEFAULT_CHIME : src;
+  try {
+    const audio = new Audio(url);
+    audio.volume = 0.75;
+    void audio.play();
+  } catch {
+    /* autoplay blocked */
+  }
+}
+
+function notify(title: string, body: string, sound?: string) {
+  playSound(sound);
   if (typeof Notification === "undefined") return;
-  const show = () => new Notification(title, { body, silent: false });
+  const show = () => new Notification(title, { body, silent: true });
   if (Notification.permission === "granted") show();
   else if (Notification.permission !== "denied") {
     void Notification.requestPermission().then((perm) => {
@@ -33,7 +48,8 @@ function makeApi(pack: PluginPack): PluginApi {
       savePluginSetting(pack.id, key, value);
     },
     on: onPluginEvent,
-    notify,
+    notify: (title, body) => notify(title, body, String(settings.sound || "ding")),
+    play: playSound,
     log: (message) => console.info(`[${pack.manifest.name}]`, message),
   };
 }

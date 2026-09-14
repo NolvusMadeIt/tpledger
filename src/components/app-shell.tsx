@@ -25,9 +25,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="mx-auto flex min-h-dvh max-w-6xl items-stretch px-2 py-3 sm:px-3 sm:py-5">
         <div className="gw2-window flex w-full flex-col overflow-hidden">
           <header className="flex items-baseline justify-between gap-4 px-4 pt-3 pb-2 sm:px-5">
-            <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0">
-              <Link to="/" className="font-display text-2xl tracking-wide text-accent sm:text-[1.7rem]">
-                Tyria Ledger
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0">
+              <Link to="/" className="flex min-w-0 items-center gap-2.5">
+                <img src="/brand/lion.png" alt="" className="h-9 w-auto sm:h-10" />
+                <span className="font-display text-2xl tracking-wide text-accent sm:text-[1.7rem]">
+                  Tyria Ledger
+                </span>
               </Link>
               <span className="text-sm text-muted-foreground">TP</span>
             </div>

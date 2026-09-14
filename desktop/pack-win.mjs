@@ -54,7 +54,7 @@ await packager({
   dir: here,
   name: "Tyria Ledger",
   appCopyright: "Tyria Ledger",
-  appVersion: "1.0.2",
+  appVersion: "1.0.3",
   electronVersion: "37.2.6",
   out,
   overwrite: true,

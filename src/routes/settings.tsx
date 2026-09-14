@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { FolderOpen, Puzzle, Trash2 } from "lucide-react";
+import { FolderOpen, Puzzle } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -402,37 +402,28 @@ function PluginRow({
   const saved = loadPluginSettings(pack.id);
   const source =
     pack.source === "bundled" ? "Bundled" : pack.source === "disk" ? "Folder" : "Dropped";
+  const fields = pack.manifest.settings ?? [];
   return (
     <article className="bg-secondary/20 px-4 py-3">
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <h3 className="text-sm font-medium">{pack.manifest.name}</h3>
-            <span className="text-[11px] text-muted-foreground">v{pack.manifest.version}</span>
-            <span className="text-[11px] text-coin-gold">{source}</span>
-            {on ? (
-              <span className="text-[11px] text-buy">Running</span>
-            ) : (
-              <span className="text-[11px] text-muted-foreground">Off</span>
-            )}
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">{pack.manifest.description}</p>
-        </div>
-        <Switch on={on} onChange={onToggle} label={`Enable ${pack.manifest.name}`} />
-        {onRemove ? (
-          <button
-            type="button"
-            aria-label="Remove plugin"
-            onClick={onRemove}
-            className="p-1 text-muted-foreground hover:text-sell"
-          >
-            <Trash2 className="size-4" />
-          </button>
-        ) : null}
-      </div>
-      {on && pack.manifest.settings?.length ? (
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {pack.manifest.settings.map((field) => (
+      <RowToggle
+        on={on}
+        onChange={onToggle}
+        label={pack.manifest.name}
+        hint={`${pack.manifest.description}${on ? "  ·  Running" : "  ·  Off"} · v${pack.manifest.version} · ${source}`}
+      />
+      {onRemove ? (
+        <button
+          type="button"
+          aria-label="Remove plugin"
+          onClick={onRemove}
+          className="mt-2 text-xs text-muted-foreground hover:text-sell"
+        >
+          Remove
+        </button>
+      ) : null}
+      {fields.length ? (
+        <div className="mt-3 space-y-3 border-t border-border pt-3">
+          {fields.map((field) => (
             <Field
               key={field.key}
               field={field}
@@ -456,22 +447,74 @@ function Field({
   onChange: (value: unknown) => void;
 }) {
   if (field.type === "boolean") {
+    return <RowToggle on={Boolean(value)} onChange={onChange} label={field.label} hint={field.hint ?? ""} />;
+  }
+  if (field.type === "sound") {
+    const custom = typeof value === "string" && value !== "ding" && value !== "default" && value.length > 0;
     return (
-      <RowToggle on={Boolean(value)} onChange={onChange} label={field.label} hint={field.hint ?? ""} />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <span>
+          <span className="block text-sm">{field.label}</span>
+          <span className="text-xs text-muted-foreground">
+            {custom ? "Custom file" : "Default chime"}
+            {field.hint ? ` · ${field.hint}` : ""}
+          </span>
+        </span>
+        <span className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => onChange("ding")}>
+            Default
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const audio = new Audio(custom ? String(value) : "/sounds/chime.wav");
+              void audio.play();
+            }}
+          >
+            Preview
+          </Button>
+          <label className="inline-flex h-8 cursor-pointer items-center border border-border bg-secondary px-3 text-xs">
+            Browse
+            <input
+              type="file"
+              accept="audio/wav,audio/mpeg,audio/ogg,.wav,.mp3,.ogg"
+              className="sr-only"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                if (file.size > 750_000) {
+                  alert("Keep the sound under 750 KB.");
+                  return;
+                }
+                const data = await file.arrayBuffer();
+                const blob = new Blob([data], { type: file.type || "audio/wav" });
+                const reader = new FileReader();
+                reader.onload = () => onChange(String(reader.result || "ding"));
+                reader.readAsDataURL(blob);
+              }}
+            />
+          </label>
+        </span>
+      </div>
     );
   }
   return (
-    <label className="block text-xs text-muted-foreground">
-      {field.label}
+    <label className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <span>
+        <span className="block">{field.label}</span>
+        {field.hint ? <span className="text-xs text-muted-foreground">{field.hint}</span> : null}
+      </span>
       <Input
         type={field.type === "number" ? "number" : "text"}
         min={field.min}
         max={field.max}
         value={value as string | number | undefined}
         onChange={(e) => onChange(field.type === "number" ? Number(e.target.value) : e.target.value)}
-        className="mt-1 h-9"
+        className="h-9 w-28"
       />
-      {field.hint ? <span className="mt-1 block">{field.hint}</span> : null}
     </label>
   );
 }

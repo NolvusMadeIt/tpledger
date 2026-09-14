@@ -7,7 +7,7 @@ import path from "node:path";
 
 const REPO = "NolvusMadeIt/tpledger";
 const VERSION_RE = /^version[-/]v?(\d+\.\d+\.\d+)$/i;
-export const APP_VERSION = "1.0.2";
+export const APP_VERSION = "1.0.3";
 
 function ghHeaders(token) {
   const headers = {

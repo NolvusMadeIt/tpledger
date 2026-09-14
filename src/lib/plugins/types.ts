@@ -1,7 +1,7 @@
 export type PluginSettingField = {
   key: string;
   label: string;
-  type: "boolean" | "number" | "text";
+  type: "boolean" | "number" | "text" | "sound";
   default?: boolean | number | string;
   min?: number;
   max?: number;
@@ -32,6 +32,7 @@ export type PluginApi = {
   setSetting: (key: string, value: unknown) => void;
   on: (event: string, fn: (payload: unknown) => void) => () => void;
   notify: (title: string, body: string) => void;
+  play: (src?: string) => void;
   log: (message: string) => void;
 };
 
