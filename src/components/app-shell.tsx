@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Search, Settings, Warehouse, X } from "lucide-react";
+import { ChevronUp, Search, Settings, Warehouse, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Coins } from "./coins";
 import { getGemRate } from "@/lib/gw2/functions";
@@ -10,8 +10,10 @@ import type { GemRate } from "@/lib/gw2/types";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [gems, setGems] = useState<GemRate | null>(null);
+  const [showTop, setShowTop] = useState(false);
   const desktop = isDesktop();
   const through = useRef(false);
+  const scroller = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -36,6 +38,39 @@ export function AppShell({ children }: { children: ReactNode }) {
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
   }, [desktop]);
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    setShowTop(false);
+  }, [pathname]);
+
+  function onScroll() {
+    const el = scroller.current;
+    if (!el) return;
+    setShowTop(el.scrollTop > 220);
+  }
+
+  function toTop() {
+    const el = scroller.current;
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      el.scrollTop = 0;
+      return;
+    }
+    const start = el.scrollTop;
+    const t0 = performance.now();
+    const dur = 980;
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const ease = 1 - (1 - p) ** 3;
+      el.scrollTop = start * (1 - ease);
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
 
   return (
     <div className="gw2-stage text-foreground">
@@ -91,9 +126,20 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </NavLink>
               </nav>
             </aside>
-            <main className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
-              {children}
-            </main>
+            <div className="relative min-h-0 min-w-0 flex-1">
+              <main
+                ref={scroller}
+                onScroll={onScroll}
+                className="gw2-scroll h-full overflow-y-auto px-4 py-4 sm:px-5 sm:py-5"
+              >
+                {children}
+              </main>
+              {showTop ? (
+                <button type="button" className="gw2-top" aria-label="Scroll to top" onClick={toTop}>
+                  <ChevronUp className="size-5" strokeWidth={2.4} />
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>

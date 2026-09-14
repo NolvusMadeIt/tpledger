@@ -7,7 +7,7 @@ import path from "node:path";
 
 const REPO = "NolvusMadeIt/tpledger";
 const VERSION_RE = /^version[-/]v?(\d+\.\d+\.\d+)$/i;
-export const APP_VERSION = "1.0.4";
+export const APP_VERSION = "1.0.5";
 
 function ghHeaders(token) {
   const headers = {
@@ -162,33 +162,54 @@ export async function installVersion({ version, installDir, token, onStatus }) {
     onStatus?.({ state: "downloading", message: `Downloading ${version.label}…`, percent });
   });
   onStatus?.({ state: "installing", message: "Closing so the update can install…" });
-  const unpack = path.join(tmp, "unpack");
-  const bat = path.join(os.tmpdir(), "tyria-ledger-update.bat");
-  const exe = path.join(installDir, "Tyria Ledger.exe");
-  const pid = process.pid;
-  const zipEsc = zip.replace(/'/g, "''");
-  const unpackEsc = unpack.replace(/'/g, "''");
-  const destEsc = installDir.replace(/'/g, "''");
+
+  const job = {
+    pid: process.pid,
+    zip,
+    unpack: path.join(tmp, "unpack"),
+    dest: installDir,
+    exe: path.join(installDir, "Tyria Ledger.exe"),
+    log: path.join(os.tmpdir(), "tyria-ledger-update.log"),
+  };
+  const jobPath = path.join(tmp, "job.json");
+  const ps1 = path.join(tmp, "update.ps1");
+  const vbs = path.join(os.tmpdir(), "tyria-ledger-update.vbs");
+  fs.writeFileSync(jobPath, JSON.stringify(job));
   fs.writeFileSync(
-    bat,
+    ps1,
     [
-      "@echo off",
-      "setlocal",
-      ":wait",
-      `tasklist /FI "PID eq ${pid}" | find "${pid}" >nul`,
-      "if not errorlevel 1 (",
-      "  timeout /t 1 /nobreak >nul",
-      "  goto wait",
-      ")",
-      `powershell -NoProfile -Command "Expand-Archive -LiteralPath '${zipEsc}' -DestinationPath '${unpackEsc}' -Force"`,
-      `powershell -NoProfile -Command "$root = Get-ChildItem -LiteralPath '${unpackEsc}' -Directory | Select-Object -First 1; if ($root) { Copy-Item -Path (Join-Path $root.FullName '*') -Destination '${destEsc}' -Recurse -Force } else { Copy-Item -Path (Join-Path '${unpackEsc}' '*') -Destination '${destEsc}' -Recurse -Force }"`,
-      `start "" "${exe}"`,
-      `rmdir /s /q "${tmp}"`,
-      "del \"%~f0\"",
+      "$ErrorActionPreference = 'Stop'",
+      `$job = Get-Content -LiteralPath '${jobPath.replace(/'/g, "''")}' -Raw | ConvertFrom-Json`,
+      "function Log($m) { Add-Content -LiteralPath $job.log -Value ((Get-Date -Format o) + ' ' + $m) }",
+      "Log ('waiting for PID ' + $job.pid)",
+      "while (Get-Process -Id $job.pid -ErrorAction SilentlyContinue) { Start-Sleep -Milliseconds 400 }",
+      "Start-Sleep -Milliseconds 1200",
+      "Log 'unpack'",
+      "New-Item -ItemType Directory -Force -Path $job.unpack | Out-Null",
+      "Expand-Archive -LiteralPath $job.zip -DestinationPath $job.unpack -Force",
+      "$root = Get-ChildItem -LiteralPath $job.unpack -Directory | Select-Object -First 1",
+      "if ($root) { $from = Join-Path $root.FullName '*' } else { $from = Join-Path $job.unpack '*' }",
+      "New-Item -ItemType Directory -Force -Path $job.dest | Out-Null",
+      "Copy-Item -Path $from -Destination $job.dest -Recurse -Force",
+      "Log 'start'",
+      "Start-Process -FilePath $job.exe",
+      "Log 'done'",
     ].join("\r\n"),
   );
-  spawn("cmd.exe", ["/c", bat], { detached: true, stdio: "ignore", windowsHide: true }).unref();
-  setTimeout(() => app.exit(0), 400);
+  const ps =
+    process.env.SystemRoot
+      ? path.join(process.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+      : "powershell.exe";
+  const cmd = `"${ps}" -NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "${ps1}"`;
+  fs.writeFileSync(vbs, `CreateObject("Wscript.Shell").Run ${JSON.stringify(cmd)}, 0, False\r\n`);
+  const child = spawn("wscript.exe", ["//B", "//Nologo", vbs], {
+    detached: true,
+    stdio: "ignore",
+    windowsHide: true,
+    shell: false,
+  });
+  child.unref();
+  setTimeout(() => app.exit(0), 500);
 }
 
 export function toastUpdate(version, onClick) {

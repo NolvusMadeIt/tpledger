@@ -368,10 +368,13 @@ ipcMain.handle("updater:install", async (_e, id) => {
   lastVersions = versions;
   const version = pickTarget(versions, id || settings.preferredVersion);
   if (!version) throw new Error("No version to install.");
+  if (!version.downloadUrl) throw new Error("That version has no Windows build yet.");
   const dir = settings.installDir || (app.isPackaged ? path.dirname(process.execPath) : "");
   if (!dir) throw new Error("Pick a folder first.");
   settings.installDir = dir;
+  settings.tray = false;
   saveSettings();
+  win?.removeAllListeners("close");
   await installVersion({
     version,
     installDir: dir,

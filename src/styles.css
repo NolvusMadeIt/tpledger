@@ -48,8 +48,12 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    overflow: hidden;
   }
   body {
+    height: 100%;
+    overflow: hidden;
     background: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -68,7 +72,8 @@
 
 @layer components {
   .gw2-stage {
-    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
     background-color: #332617;
     background-image:
       linear-gradient(rgb(20 14 8 / 0.35), rgb(16 12 8 / 0.5)),
@@ -81,8 +86,10 @@
   .gw2-frame {
     position: relative;
     display: flex;
-    min-height: 100dvh;
+    height: 100%;
+    min-height: 0;
     width: 100%;
+    overflow: hidden;
     padding: 1.35rem 0 0 1.7rem;
   }
 
@@ -178,14 +185,53 @@
     );
   }
 
-  .gw2-window ::-webkit-scrollbar {
-    width: 7px;
+  .gw2-window ::-webkit-scrollbar,
+  .gw2-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
   }
-  .gw2-window ::-webkit-scrollbar-thumb {
-    background: #9a9078;
+  .gw2-window ::-webkit-scrollbar-track,
+  .gw2-scroll::-webkit-scrollbar-track {
+    background:
+      linear-gradient(90deg, rgb(10 8 6 / 0.9), rgb(22 18 12 / 0.95));
+    box-shadow: inset 0 0 0 1px #2a2418;
   }
-  .gw2-window ::-webkit-scrollbar-track {
-    background: rgb(0 0 0 / 0.3);
+  .gw2-window ::-webkit-scrollbar-thumb,
+  .gw2-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #d8c896 0%, #9a7c48 55%, #6a542e 100%);
+    border: 1px solid #3a2e18;
+    box-shadow: inset 0 1px 0 rgb(255 236 190 / 0.35);
+  }
+  .gw2-window ::-webkit-scrollbar-thumb:hover,
+  .gw2-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #efe0b0 0%, #c4a056 100%);
+  }
+  .gw2-window ::-webkit-scrollbar-corner,
+  .gw2-scroll::-webkit-scrollbar-corner {
+    background: #141210;
+  }
+  .gw2-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #c4b27a #16120c;
+  }
+
+  .gw2-top {
+    position: absolute;
+    right: 1.15rem;
+    bottom: 1.15rem;
+    z-index: 20;
+    display: grid;
+    width: 2.35rem;
+    height: 2.35rem;
+    place-items: center;
+    border: 1px solid #6a5d45;
+    background: rgb(22 18 12 / 0.92);
+    color: #e7d9aa;
+    box-shadow: 0 0 0 1px #141210, 0 8px 16px rgb(0 0 0 / 0.4);
+  }
+  .gw2-top:hover {
+    background: #3a2e1c;
+    color: #f3ead8;
   }
 
   html[data-overlay="1"],
@@ -193,12 +239,13 @@
     background: transparent !important;
   }
   html[data-overlay="1"] .gw2-stage {
-    min-height: 100dvh;
+    height: 100dvh;
     background: transparent;
   }
   html[data-overlay="1"] .gw2-frame {
     max-width: none;
-    min-height: 100dvh;
+    height: 100%;
+    min-height: 0;
     padding: 1.5rem 0.35rem 0.35rem 1.85rem;
   }
 }

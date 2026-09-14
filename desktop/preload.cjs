@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("tyriaDesktop", {
   isDesktop: true,
-  version: "1.0.4",
+  version: "1.0.5",
   getSettings: () => ipcRenderer.invoke("desktop:getSettings"),
   setSettings: (settings) => ipcRenderer.invoke("desktop:setSettings", settings),
   listPlugins: () => ipcRenderer.invoke("plugins:list"),
