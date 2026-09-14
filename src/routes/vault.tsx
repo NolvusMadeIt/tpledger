@@ -20,7 +20,7 @@ import {
 import { clearVaultCache, readVaultCache, writeVaultCache } from "@/lib/gw2/vault-cache";
 import { emitPluginEvent } from "@/lib/plugins/bus";
 import type { VaultLine, VaultLocation, VaultSnapshot } from "@/lib/gw2/types";
-import { cn } from "@/lib/utils";
+import { usePlugins } from "@/components/plugin-host";
 
 export const Route = createFileRoute("/vault")({
   component: VaultPage,
@@ -32,6 +32,7 @@ let loadLock = false;
 
 function VaultPage() {
   const { items: favs, ids: favIds } = useFavorites();
+  const { settings } = usePlugins();
   const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState<SavedKeyMeta | null>(null);
   const [replacing, setReplacing] = useState(false);
@@ -310,7 +311,7 @@ function VaultPage() {
                   <LocationBlock
                     key={loc.id}
                     loc={loc}
-                    defaultOpen={filter !== "all" || loc.kind !== "character"}
+                    defaultOpen={settings.vaultBagsOpen}
                   />
                 ))}
                 {locations.length === 0 ? (

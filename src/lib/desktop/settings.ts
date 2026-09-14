@@ -8,7 +8,7 @@ export type AppSettings = {
   installDir: string;
   autoUpdate: boolean;
   preferredVersion: string;
-  githubToken: string;
+  vaultBagsOpen: boolean;
 };
 
 const KEY = "tyria-ledger.desktop";
@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   installDir: "",
   autoUpdate: true,
   preferredVersion: "latest",
-  githubToken: "",
+  vaultBagsOpen: false,
 };
 
 export function loadSettings(): AppSettings {
@@ -40,7 +40,7 @@ export function loadSettings(): AppSettings {
       preferredVersion: typeof parsed.preferredVersion === "string" && parsed.preferredVersion
         ? parsed.preferredVersion
         : "latest",
-      githubToken: typeof parsed.githubToken === "string" ? parsed.githubToken : "",
+      vaultBagsOpen: parsed.vaultBagsOpen === true,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

@@ -111,6 +111,12 @@ function SettingsPage() {
             label="Always on top"
             hint="Stays above the game while the overlay is open"
           />
+          <RowToggle
+            on={settings.vaultBagsOpen}
+            onChange={(vaultBagsOpen) => setSettings({ ...settings, vaultBagsOpen })}
+            label="Expand vault bags"
+            hint="Bank, mats, shared, and characters start open. Off keeps them collapsed."
+          />
         </div>
       </section>
 
@@ -209,7 +215,7 @@ function UpdateSection() {
     void load();
     return () => off?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.githubToken]);
+  }, []);
 
   async function load() {
     if (!window.tyriaDesktop) return;
@@ -285,20 +291,6 @@ function UpdateSection() {
               <Button type="button" variant="outline" onClick={() => void pickFolder()}>
                 Browse
               </Button>
-            </span>
-          </label>
-          <label className="mt-4 block text-sm">
-            GitHub token
-            <Input
-              type="password"
-              value={settings.githubToken}
-              onChange={(e) => setSettings({ ...settings, githubToken: e.target.value })}
-              placeholder="Only if the repo is private"
-              className="mt-2"
-              autoComplete="off"
-            />
-            <span className="mt-1 block text-xs text-muted-foreground">
-              Leave empty if the repo is public. Private repos need a token with repo read.
             </span>
           </label>
           <div className="mt-4">

@@ -25,7 +25,7 @@ const DEFAULTS = {
   installDir: "",
   autoUpdate: true,
   preferredVersion: "latest",
-  githubToken: "",
+  vaultBagsOpen: false,
 };
 
 let win = null;
@@ -336,7 +336,7 @@ async function createWindow() {
 
 async function runUpdateCheck() {
   try {
-    lastVersions = await listVersions(settings.githubToken);
+    lastVersions = await listVersions();
     const target = pickTarget(lastVersions, settings.preferredVersion);
     if (target && !target.current && target.downloadUrl) {
       emitStatus({ state: "ready", message: `${target.label} is ready.` });
@@ -356,7 +356,7 @@ async function runUpdateCheck() {
 }
 
 async function runInstall(id) {
-  const versions = lastVersions.length ? lastVersions : await listVersions(settings.githubToken);
+  const versions = lastVersions.length ? lastVersions : await listVersions();
   lastVersions = versions;
   const version = pickTarget(versions, id || settings.preferredVersion);
   if (!version) throw new Error("No version to install.");
@@ -372,7 +372,7 @@ async function runInstall(id) {
   await installVersion({
     version,
     installDir: dir,
-    token: settings.githubToken,
+    token: "",
     onStatus: emitStatus,
   });
 }
@@ -404,7 +404,7 @@ ipcMain.handle("updater:version", () => APP_VERSION);
 ipcMain.handle("updater:list", async () => {
   emitStatus({ state: "checking", message: "Checking the repo…" });
   try {
-    lastVersions = await listVersions(settings.githubToken);
+    lastVersions = await listVersions();
     emitStatus({ state: "idle", message: lastVersions.length ? "Versions loaded." : "No version branches yet." });
     return lastVersions;
   } catch (err) {
