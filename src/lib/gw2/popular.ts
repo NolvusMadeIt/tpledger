@@ -1,0 +1,17 @@
+export const POPULAR_ITEMS: { id: number; name: string }[] = [
+  { id: 19721, name: "Glob of Ectoplasm" },
+  { id: 19976, name: "Mystic Coin" },
+  { id: 24277, name: "Crystalline Dust" },
+  { id: 19685, name: "Orichalcum Ingot" },
+  { id: 19701, name: "Ancient Wood Plank" },
+  { id: 19748, name: "Hardened Leather" },
+  { id: 19746, name: "Bolt of Gossamer" },
+  { id: 24358, name: "Ancient Bone" },
+  { id: 24351, name: "Vicious Claw" },
+  { id: 24357, name: "Vicious Fang" },
+  { id: 24289, name: "Powerful Blood" },
+  { id: 24363, name: "Armored Scale" },
+  { id: 19684, name: "Mithril Ingot" },
+  { id: 46736, name: "Thermocatalytic Reagent" },
+  { id: 45178, name: "Obsidian Shard" },
+];
