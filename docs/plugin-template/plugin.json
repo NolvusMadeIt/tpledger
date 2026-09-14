@@ -1,0 +1,24 @@
+{
+  "id": "hello-ledger",
+  "name": "Hello Ledger",
+  "version": "0.1.0",
+  "author": "Your name",
+  "description": "Logs a line when you price-check an item. Replace this.",
+  "entry": "index.js",
+  "settings": [
+    {
+      "key": "on",
+      "type": "boolean",
+      "label": "Run",
+      "default": true,
+      "hint": "Turn the plugin off without uninstalling it."
+    },
+    {
+      "key": "note",
+      "type": "text",
+      "label": "Note",
+      "default": "hello",
+      "hint": "Shown in the log."
+    }
+  ]
+}

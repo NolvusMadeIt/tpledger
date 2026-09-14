@@ -99,9 +99,23 @@ plugins/
 
 Or drop the folder onto **Settings**. Bundled: **Flip Watch**, **Chat Copy**. Details: [`public/plugins/README.md`](public/plugins/README.md).
 
----
+## Collaborators
 
-## For developers only
+Docs live in the **[Wiki](https://github.com/NolvusMadeIt/tpledger/wiki)**.
+
+| You | Branch | Opens a PR into |
+| --- | --- | --- |
+| Collaborator submitting a plugin | `plugin_<name>_<version>` | `main` |
+| Maintainer shipping the app | `main` | GitHub Release `vX.Y.Z` (creates `version-X.Y.Z`) |
+
+```
+plugin_flip-watch_1.2.0
+plugin_hello-ledger_0.1.0
+```
+
+Do not PR from `main` or `version-*` unless you are a maintainer. Copy [`docs/plugin-template/`](docs/plugin-template/). Rules: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+---
 
 This repo is the source. If you cloned it, you still launch the **release exe** to use the app. `npm run dev` is the live web preview while you change code.
 

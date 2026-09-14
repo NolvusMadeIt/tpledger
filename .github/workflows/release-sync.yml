@@ -1,0 +1,39 @@
+name: Sync main on release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Point version-* at the tag and keep main current
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+
+          git fetch origin --tags --prune
+          git fetch origin main || true
+
+          git checkout -B "version-${VER}" "tags/${TAG}"
+          git push -u origin "version-${VER}" --force
+
+          git checkout -B main origin/main
+          if git merge-base --is-ancestor "tags/${TAG}" HEAD; then
+            echo "main already contains ${TAG}"
+          else
+            git merge --no-ff --no-edit "tags/${TAG}" -m "chore: sync main with ${TAG}"
+            git push origin main
+          fi
