@@ -1,0 +1,147 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cinzel", ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-background: #1a1612;
+  --color-foreground: #e8e0cc;
+  --color-card: #262626;
+  --color-card-foreground: #e8e0cc;
+  --color-secondary: #2c2b2c;
+  --color-secondary-foreground: #e8e0cc;
+  --color-muted: #9a9184;
+  --color-muted-foreground: #9a9184;
+  --color-border: #3a3834;
+  --color-accent: #e7d9aa;
+  --color-accent-foreground: #1a140c;
+  --color-ring: #e7d9aa;
+  --color-select: #5c3a56;
+  --color-select-foreground: #f3ead8;
+  --color-rail: #3d5c32;
+  --color-banner: #3a5a6e;
+  --color-buy: #7dba98;
+  --color-sell: #d17a76;
+  --color-coin-gold: #c9b48a;
+  --color-coin-silver: #c5c8ce;
+  --color-coin-copper: #c08a68;
+  --color-rarity-junk: #9a9a9a;
+  --color-rarity-basic: #e8e0cc;
+  --color-rarity-fine: #6ea4d8;
+  --color-rarity-masterwork: #5aa05a;
+  --color-rarity-rare: #d4c06a;
+  --color-rarity-exotic: #d4924a;
+  --color-rarity-ascended: #d37aa0;
+  --color-rarity-legendary: #6eb4dc;
+
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 3px;
+  --radius-3xl: 3px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .gw2-stage {
+    min-height: 100dvh;
+    background-color: #332617;
+    background-image:
+      linear-gradient(rgb(20 14 8 / 0.35), rgb(16 12 8 / 0.5)),
+      url("/theme/hall.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  .gw2-window {
+    position: relative;
+    background-color: #262626;
+    background-image:
+      url("/theme/noise.svg"),
+      linear-gradient(rgb(38 38 38 / 0.92), rgb(32 32 32 / 0.94)),
+      url("/theme/panel.jpg");
+    background-size: 180px, auto, 520px;
+    background-blend-mode: overlay, normal, multiply;
+    box-shadow:
+      0 0 0 1px #1a1814,
+      0 0 0 2px #5a5040,
+      0 20px 40px rgb(0 0 0 / 0.5);
+  }
+
+  .gw2-sidebar {
+    background-color: rgb(36 30 34 / 0.45);
+    background-image:
+      url("/theme/noise.svg"),
+      linear-gradient(rgb(42 32 40 / 0.35), rgb(28 24 26 / 0.45));
+    background-size: 180px, auto;
+    box-shadow: inset 3px 0 0 var(--color-rail);
+  }
+
+  .gw2-well {
+    background: rgb(18 18 18 / 0.45);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.5);
+  }
+
+  .gw2-banner {
+    background-image: linear-gradient(
+      90deg,
+      rgb(42 74 92 / 0.88) 0%,
+      rgb(52 88 108 / 0.62) 38%,
+      rgb(38 38 38 / 0.05) 100%
+    );
+  }
+
+  .gw2-window ::-webkit-scrollbar {
+    width: 7px;
+  }
+  .gw2-window ::-webkit-scrollbar-thumb {
+    background: #9a9078;
+  }
+  .gw2-window ::-webkit-scrollbar-track {
+    background: rgb(0 0 0 / 0.3);
+  }
+
+  html[data-overlay="1"] .gw2-stage {
+    min-height: 100dvh;
+  }
+  html[data-overlay="1"] .gw2-stage > div {
+    max-width: none;
+    padding: 0;
+    min-height: 100dvh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .gw2-stage {
+    background-attachment: scroll;
+  }
+}

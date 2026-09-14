@@ -21,6 +21,27 @@ export type SearchHit = {
   chatLink: string;
 };
 
+export type PulseItem = {
+  id: number;
+  name: string;
+  icon: string | null;
+  rarity: string;
+  buy: number;
+  sell: number;
+  instantSell: number;
+  listNet: number;
+  buyQuantity: number;
+  sellQuantity: number;
+};
+
+export type MarketPulse = {
+  gems: GemRate | null;
+  ecto: PulseItem | null;
+  demand: PulseItem[];
+  listed: PulseItem[];
+  fatSpread: PulseItem | null;
+};
+
 export type ListingRow = {
   listings: number;
   unitPrice: number;

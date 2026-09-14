@@ -1,18 +1,26 @@
 # Tyria Ledger
 
-Guild Wars 2 price checker, vault, and fence. Live TP prices, stash grids, starred watchlist, click-to-copy chat codes, wiki links.
+Guild Wars 2 price checker, vault, fence, overlay, and plugins.
 
-## Local (web)
+## Download (Windows)
+
+[**Tyria Ledger 1.0.0**](https://github.com/NolvusMadeIt/tpledger/releases/tag/v1.0.0) — unzip and run `Tyria Ledger.exe`.
+
+- Closes to the tray (mystic coin icon)
+- Hotkey `Control+Shift+L` slides from the left or right (set in Options)
+- Drop plugin folders into `plugins/` next to the exe
+
+## Web (dev)
 
 ```bash
 npm install
 npm run dev
 ```
 
-API keys stay on the device (encrypted). Bound items are never listed.
+API keys stay on the device. Bound items are never listed.
 
-Theme textures live in `public/theme`. Coin icons live in `public/coins`.
+## Rebuild the exe
 
-## Desktop app
-
-See [convert/README.md](convert/README.md). Unzip, split `convert/` out, drop the ledger folder onto `Drop folder here.bat` (Windows) or `Drop folder here.command` (Mac). Builds land in `apps/`.
+```bash
+node desktop/pack-win.mjs
+```

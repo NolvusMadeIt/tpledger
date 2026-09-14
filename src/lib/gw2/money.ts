@@ -22,3 +22,5 @@ export function splitCoins(copper: number): { g: number; s: number; c: number } 
     c: n % 100,
   };
 }
+
+

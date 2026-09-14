@@ -16,7 +16,7 @@ const electronDir = path.join(convertDir, "electron");
 const dropped = process.argv.slice(2).filter((a) => !a.startsWith("-"));
 const flags = new Set(process.argv.slice(2).filter((a) => a.startsWith("-")));
 if (!dropped.length) {
-  console.error("Drop a project folder onto \u201cDrop folder here\u201d, or run:");
+  console.error("Drop a project folder onto “Drop folder here”, or run:");
   console.error("  node to-desktop.mjs /path/to/app");
   process.exit(1);
 }
@@ -49,19 +49,19 @@ function exists(file) {
 async function npmInstallIfNeeded() {
   if (!fs.existsSync(pkgPath)) return;
   if (!fs.existsSync(path.join(convertDir, "node_modules", "@electron", "packager"))) {
-    console.log("Installing converter\u2026");
+    console.log("Installing converter…");
     await run("npm", ["install"], convertDir);
   }
   if (!fs.existsSync(path.join(src, "node_modules")) && pkg.dependencies) {
-    console.log("Installing app dependencies\u2026");
+    console.log("Installing app dependencies…");
     await run("npm", ["install"], src);
   }
   if (pkg.scripts?.build) {
-    console.log("Building app\u2026");
+    console.log("Building app…");
     try {
       await run("npm", ["run", "build"], src);
     } catch {
-      console.warn("Build failed \u2014 wrapping the folder as-is.");
+      console.warn("Build failed — wrapping the folder as-is.");
     }
   }
 }
@@ -110,7 +110,7 @@ async function pack(stage) {
 
   fs.mkdirSync(appsDir, { recursive: true });
   const arch = os.arch() === "arm64" ? "arm64" : "x64";
-  console.log(`Packing ${title} \u2192 ${appsDir}`);
+  console.log(`Packing ${title} → ${appsDir}`);
   await packager({
     dir: stage,
     out: appsDir,

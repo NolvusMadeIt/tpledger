@@ -1,0 +1,24 @@
+{
+  "id": "flip-watch",
+  "name": "Flip Watch",
+  "version": "1.0.0",
+  "author": "Tyria Ledger",
+  "description": "When you price-check an item, ping if list premium beats your gold bar.",
+  "entry": "index.js",
+  "settings": [
+    {
+      "key": "minGold",
+      "type": "number",
+      "label": "Min premium (gold)",
+      "default": 1,
+      "min": 0,
+      "hint": "Instant-sell vs list-net, after tax."
+    },
+    {
+      "key": "notify",
+      "type": "boolean",
+      "label": "Desktop ping",
+      "default": true
+    }
+  ]
+}

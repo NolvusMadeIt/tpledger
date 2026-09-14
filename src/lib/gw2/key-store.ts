@@ -67,20 +67,30 @@ function idbDel(db: IDBDatabase, id: string): Promise<void> {
   });
 }
 
-async function getOrCreateWrapKey(): Promise<CryptoKey> {
-  const db = await openDb();
-  try {
-    const existing = await idbGet(db, WRAP_ID);
-    if (existing) return existing;
-    const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, [
-      "encrypt",
-      "decrypt",
-    ]);
-    await idbPut(db, WRAP_ID, key);
-    return key;
-  } finally {
-    db.close();
+let wrapPromise: Promise<CryptoKey> | null = null;
+
+function getOrCreateWrapKey(): Promise<CryptoKey> {
+  if (!wrapPromise) {
+    wrapPromise = (async () => {
+      const db = await openDb();
+      try {
+        const existing = await idbGet(db, WRAP_ID);
+        if (existing) return existing;
+        const key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, [
+          "encrypt",
+          "decrypt",
+        ]);
+        await idbPut(db, WRAP_ID, key);
+        return key;
+      } finally {
+        db.close();
+      }
+    })().catch((err) => {
+      wrapPromise = null;
+      throw err;
+    });
   }
+  return wrapPromise;
 }
 
 function readEnvelope(): Envelope | null {
@@ -122,8 +132,8 @@ export async function lockApiKey(apiKey: string, name: string): Promise<SavedKey
 export async function unlockApiKey(): Promise<string> {
   const env = readEnvelope();
   if (!env) throw new Error("No saved key.");
+  const wrap = await getOrCreateWrapKey();
   try {
-    const wrap = await getOrCreateWrapKey();
     const pt = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: b64ToBytes(env.iv) },
       wrap,
@@ -131,8 +141,7 @@ export async function unlockApiKey(): Promise<string> {
     );
     return new TextDecoder().decode(pt);
   } catch {
-    await forgetApiKey();
-    throw new Error("The saved key was damaged or tampered with. Paste a new key.");
+    throw new Error("Could not unlock the saved key. Replace it if this keeps happening.");
   }
 }
 
@@ -140,6 +149,7 @@ export async function forgetApiKey(): Promise<void> {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(META_KEY);
   window.localStorage.removeItem(LEGACY_KEY);
+  wrapPromise = null;
   try {
     const db = await openDb();
     try {
@@ -164,7 +174,6 @@ export async function migrateLegacyKey(): Promise<SavedKeyMeta | null> {
   try {
     return await lockApiKey(legacy, "Saved key");
   } catch {
-    window.localStorage.removeItem(LEGACY_KEY);
     return null;
   }
 }

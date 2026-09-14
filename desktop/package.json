@@ -1,0 +1,10 @@
+{
+  "name": "tyria-ledger",
+  "productName": "Tyria Ledger",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "main.mjs",
+  "author": "Tyria Ledger",
+  "description": "Guild Wars 2 Trading Post ledger overlay"
+}

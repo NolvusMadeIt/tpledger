@@ -1,0 +1,16 @@
+{
+  "id": "chat-copy",
+  "name": "Chat Copy",
+  "version": "1.0.0",
+  "author": "Tyria Ledger",
+  "description": "Copies the chat code to the clipboard after a successful price check.",
+  "entry": "index.js",
+  "settings": [
+    {
+      "key": "copy",
+      "type": "boolean",
+      "label": "Copy chat code",
+      "default": true
+    }
+  ]
+}
