@@ -32,6 +32,7 @@ export type TyriaDesktop = {
   listPlugins: () => Promise<DiskPlugin[]>;
   openPluginsFolder: () => Promise<string>;
   hideToTray: () => Promise<void>;
+  setClickThrough: (on: boolean) => void;
   onPluginsChanged: (cb: (list: DiskPlugin[]) => void) => () => void;
   listVersions: () => Promise<LedgerVersion[]>;
   pickInstallDir: () => Promise<string | null>;

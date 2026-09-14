@@ -78,33 +78,95 @@
     background-attachment: fixed;
   }
 
+  .gw2-frame {
+    position: relative;
+    display: flex;
+    min-height: 100dvh;
+    width: 100%;
+    padding: 1.35rem 0 0 1.7rem;
+  }
+
+  .gw2-lion {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 40;
+    height: 7.25rem;
+    width: auto;
+    pointer-events: none;
+    filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.55));
+  }
+
   .gw2-window {
     position: relative;
-    background-color: #262626;
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #1c1c1c;
     background-image:
       url("/theme/noise.svg"),
-      linear-gradient(rgb(38 38 38 / 0.92), rgb(32 32 32 / 0.94)),
+      linear-gradient(rgb(30 30 30 / 0.94), rgb(22 22 22 / 0.96)),
       url("/theme/panel.jpg");
     background-size: 180px, auto, 520px;
     background-blend-mode: overlay, normal, multiply;
     box-shadow:
-      0 0 0 1px #1a1814,
-      0 0 0 2px #5a5040,
-      0 20px 40px rgb(0 0 0 / 0.5);
+      inset 0 1px 0 rgb(232 217 170 / 0.22),
+      inset 0 0 0 1px rgb(18 14 10 / 0.85),
+      0 0 0 1px #141210,
+      0 0 0 2px #6a5d45,
+      0 0 0 3px #2a2418,
+      0 18px 40px rgb(0 0 0 / 0.45);
+  }
+
+  .gw2-chrome {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    min-height: 3.15rem;
+    align-items: center;
+    padding: 0.35rem 0.4rem 0.35rem 5.6rem;
+    background:
+      linear-gradient(180deg, rgb(48 44 38 / 0.55) 0%, rgb(22 22 22 / 0.15) 100%);
+    box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.45);
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+
+  .gw2-chrome a,
+  .gw2-chrome button {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+
+  .gw2-close {
+    display: grid;
+    width: 1.65rem;
+    height: 1.65rem;
+    place-items: center;
+    border: 1px solid rgb(90 82 68 / 0.9);
+    background: rgb(18 16 14 / 0.85);
+    color: #d8cda8;
+    line-height: 0;
+  }
+  .gw2-close:hover {
+    background: #5a2a24;
+    color: #f3ead8;
   }
 
   .gw2-sidebar {
-    background-color: rgb(36 30 34 / 0.45);
+    background-color: rgb(28 24 26 / 0.72);
     background-image:
       url("/theme/noise.svg"),
-      linear-gradient(rgb(42 32 40 / 0.35), rgb(28 24 26 / 0.45));
+      linear-gradient(rgb(36 28 32 / 0.4), rgb(22 20 20 / 0.55));
     background-size: 180px, auto;
-    box-shadow: inset 3px 0 0 var(--color-rail);
+    box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.45), inset 3px 0 0 var(--color-rail);
   }
 
   .gw2-well {
-    background: rgb(18 18 18 / 0.45);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.5);
+    background: rgb(12 12 12 / 0.5);
+    box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.55);
   }
 
   .gw2-banner {
@@ -126,13 +188,18 @@
     background: rgb(0 0 0 / 0.3);
   }
 
+  html[data-overlay="1"],
+  html[data-overlay="1"] body {
+    background: transparent !important;
+  }
   html[data-overlay="1"] .gw2-stage {
     min-height: 100dvh;
+    background: transparent;
   }
-  html[data-overlay="1"] .gw2-stage > div {
+  html[data-overlay="1"] .gw2-frame {
     max-width: none;
-    padding: 0;
     min-height: 100dvh;
+    padding: 1.5rem 0.35rem 0.35rem 1.85rem;
   }
 }
 

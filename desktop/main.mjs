@@ -262,9 +262,12 @@ async function createWindow() {
   win = new BrowserWindow({
     ...panelBounds(true),
     show: false,
-    frame: true,
+    frame: false,
+    transparent: true,
+    hasShadow: false,
+    backgroundColor: "#00000000",
     autoHideMenuBar: true,
-    backgroundColor: "#1a1612",
+    roundedCorners: false,
     icon: iconPath(),
     webPreferences: {
       preload: path.join(here, "preload.cjs"),
@@ -336,6 +339,9 @@ ipcMain.handle("plugins:openFolder", async () => {
 });
 ipcMain.handle("desktop:hide", () => {
   hidePanel();
+});
+ipcMain.on("desktop:clickThrough", (_e, on) => {
+  win?.setIgnoreMouseEvents(Boolean(on), { forward: true });
 });
 ipcMain.handle("updater:version", () => APP_VERSION);
 ipcMain.handle("updater:list", async () => {

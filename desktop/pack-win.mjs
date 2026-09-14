@@ -8,7 +8,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
 const out = path.join(root, "apps");
 const resDir = path.join(here, "resources");
-const APP_VERSION = "1.0.3";
+const APP_VERSION = "1.0.4";
 
 function run(cmd, args, cwd = root, env = process.env) {
   return new Promise((resolve, reject) => {
