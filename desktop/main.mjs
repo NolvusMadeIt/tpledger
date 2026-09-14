@@ -37,12 +37,17 @@ function saveSettings() {
   fs.writeFileSync(SETTINGS_FILE(), JSON.stringify(settings, null, 2));
 }
 
+function res(...parts) {
+  return app.isPackaged ? path.join(process.resourcesPath, ...parts) : path.join(here, ...parts);
+}
+
 function iconPath() {
-  const ico = path.join(here, "icon.ico");
-  const png = path.join(here, "icon.png");
+  const trayIco = res("tray.ico");
+  const ico = res("icon.ico");
+  if (fs.existsSync(trayIco)) return trayIco;
   if (fs.existsSync(ico)) return ico;
-  if (fs.existsSync(png)) return png;
-  return path.join(here, "icon.ico");
+  const local = path.join(here, "icon.ico");
+  return fs.existsSync(local) ? local : ico;
 }
 
 function pluginsDirs() {
@@ -57,8 +62,10 @@ function pluginsDirs() {
 
 function readPlugins() {
   const { drop, user } = pluginsDirs();
+  const bundled = app.isPackaged ? res("plugins") : path.join(here, "..", "public", "plugins");
   const out = [];
-  for (const root of [drop, user]) {
+  const seen = new Set();
+  for (const root of [bundled, drop, user]) {
     if (!fs.existsSync(root)) continue;
     for (const name of fs.readdirSync(root)) {
       const dir = path.join(root, name);
@@ -70,12 +77,10 @@ function readPlugins() {
         const entry = manifest.entry || "index.js";
         const codePath = path.join(dir, entry);
         if (!fs.existsSync(codePath)) continue;
-        out.push({
-          id: manifest.id || name,
-          dir,
-          manifest,
-          code: fs.readFileSync(codePath, "utf8"),
-        });
+        const id = manifest.id || name;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        out.push({ id, dir, manifest, code: fs.readFileSync(codePath, "utf8") });
       } catch {
         /* skip broken plugin */
       }
@@ -114,26 +119,24 @@ function panelBounds(show) {
 function applyWindow() {
   if (!win) return;
   win.setAlwaysOnTop(Boolean(settings.alwaysOnTop), "screen-saver");
-  win.setSkipTaskbar(Boolean(settings.tray));
-  win.setBounds(panelBounds(visible), true);
+  win.setSkipTaskbar(Boolean(settings.tray) && !visible);
+  if (visible && win.isVisible()) win.setBounds(panelBounds(true), true);
 }
 
 function showPanel() {
   if (!win) return;
   visible = true;
-  win.setBounds(panelBounds(false), false);
+  win.setSkipTaskbar(false);
+  win.setBounds(panelBounds(true), false);
   win.show();
-  win.setBounds(panelBounds(true), true);
   win.focus();
 }
 
 function hidePanel() {
   if (!win) return;
   visible = false;
-  win.setBounds(panelBounds(false), true);
-  setTimeout(() => {
-    if (!visible) win?.hide();
-  }, 180);
+  win.hide();
+  win.setSkipTaskbar(Boolean(settings.tray));
 }
 
 function togglePanel() {
@@ -144,20 +147,30 @@ function togglePanel() {
 
 function bindHotkey() {
   globalShortcut.unregisterAll();
-  try {
-    globalShortcut.register(settings.hotkey, togglePanel);
-  } catch {
+  const keys = [settings.hotkey, "Control+Shift+L"].filter(Boolean);
+  for (const key of keys) {
     try {
-      globalShortcut.register("Control+Shift+L", togglePanel);
+      if (globalShortcut.register(key, togglePanel)) return;
     } catch {
-      /* none */
+      /* try next */
     }
   }
 }
 
 function createTray() {
-  const image = nativeImage.createFromPath(iconPath());
-  tray = new Tray(image.isEmpty() ? nativeImage.createEmpty() : image.resize({ width: 16, height: 16 }));
+  const candidates = [res("tray.ico"), res("icon.ico"), path.join(here, "tray.ico"), path.join(here, "icon.ico")];
+  let image = nativeImage.createEmpty();
+  for (const file of candidates) {
+    if (!fs.existsSync(file)) continue;
+    const next = nativeImage.createFromPath(file);
+    if (!next.isEmpty()) {
+      image = next;
+      break;
+    }
+  }
+  const sizes = image.getSize();
+  if (sizes.width > 32) image = image.resize({ width: 32, height: 32, quality: "best" });
+  tray = new Tray(image);
   tray.setToolTip("Tyria Ledger");
   tray.setContextMenu(
     Menu.buildFromTemplate([
@@ -186,26 +199,47 @@ function waitForServer(url, tries = 80) {
   });
 }
 
+function findServerEntry() {
+  const names = [
+    res("server", "index.mjs"),
+    res("server", "index.js"),
+    path.join(here, "server", "index.mjs"),
+  ];
+  return names.find((file) => fs.existsSync(file)) || null;
+}
+
 function startServer() {
   const url = `http://127.0.0.1:${PORT}`;
-  if (!app.isPackaged) {
-    return url;
-  }
-  const resDir = process.resourcesPath;
-  const node = path.join(resDir, "node.exe");
-  const payload = path.join(resDir, "payload");
-  const cmd = fs.existsSync(node) ? node : "node";
-  if (fs.existsSync(path.join(payload, "package.json"))) {
-    const viteJs = path.join(payload, "node_modules", "vite", "bin", "vite.js");
-    server = spawn(cmd, [viteJs, "preview", "--host", "127.0.0.1", "--port", String(PORT)], {
-      cwd: payload,
-      env: { ...process.env, PORT: String(PORT), HOST: "127.0.0.1" },
-      stdio: "ignore",
-      windowsHide: true,
-    });
-    return url;
-  }
+  if (!app.isPackaged) return url;
+  const entry = findServerEntry();
+  if (!entry) return url;
+  server = spawn(process.execPath, [entry], {
+    cwd: path.dirname(entry),
+    env: {
+      ...process.env,
+      ELECTRON_RUN_AS_NODE: "1",
+      PORT: String(PORT),
+      HOST: "127.0.0.1",
+      NITRO_PORT: String(PORT),
+      NITRO_HOST: "127.0.0.1",
+    },
+    stdio: "ignore",
+    windowsHide: true,
+  });
   return url;
+}
+
+function failHtml(message) {
+  const safe = String(message).replace(/[<>&]/g, "");
+  return `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
+<html><head><meta charset="utf-8"><title>Tyria Ledger</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1a1612;color:#e8e0cc;font:16px/1.5 Segoe UI,sans-serif}
+main{max-width:28rem;padding:2rem}
+h1{font-size:1.4rem;margin:0 0 .5rem}
+p{color:#9a9184}
+</style></head>
+<body><main><h1>Tyria Ledger</h1><p>${safe}</p></main></body></html>`)}`;
 }
 
 async function createWindow() {
@@ -226,13 +260,17 @@ async function createWindow() {
   });
   win.setMenuBarVisibility(false);
   applyWindow();
+  const target = app.isPackaged ? url : process.env.LEDGER_URL || "http://127.0.0.1:8080";
   try {
     if (app.isPackaged) await waitForServer(url);
-  } catch {
-    /* still try */
+    await win.loadURL(target);
+  } catch (err) {
+    await win.loadURL(failHtml(err instanceof Error ? err.message : "Could not start the overlay."));
   }
-  const target = app.isPackaged ? url : process.env.LEDGER_URL || "http://127.0.0.1:8080";
-  await win.loadURL(target);
+  win.webContents.on("did-fail-load", (_e, code, desc) => {
+    if (code === -3) return;
+    void win?.loadURL(failHtml(desc || "Could not load Tyria Ledger."));
+  });
   showPanel();
   win.on("close", (e) => {
     if (settings.tray) {
