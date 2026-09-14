@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OptionsRouteImport } from './routes/options'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as VaultRouteImport } from './routes/vault'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const OptionsRoute = OptionsRouteImport.update({
   path: '/options',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
   path: '/vault',
@@ -32,30 +38,34 @@ const VaultRoute = VaultRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/options': typeof OptionsRoute
+  '/settings': typeof SettingsRoute
   '/vault': typeof VaultRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/options': typeof OptionsRoute
+  '/settings': typeof SettingsRoute
   '/vault': typeof VaultRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/options': typeof OptionsRoute
+  '/settings': typeof SettingsRoute
   '/vault': typeof VaultRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/options' | '/vault'
+  fullPaths: '/' | '/options' | '/settings' | '/vault'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/options' | '/vault'
-  id: '__root__' | '/' | '/options' | '/vault'
+  to: '/' | '/options' | '/settings' | '/vault'
+  id: '__root__' | '/' | '/options' | '/settings' | '/vault'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OptionsRoute: typeof OptionsRoute
+  SettingsRoute: typeof SettingsRoute
   VaultRoute: typeof VaultRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vault': {
       id: '/vault'
       path: '/vault'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OptionsRoute: OptionsRoute,
+  SettingsRoute: SettingsRoute,
   VaultRoute: VaultRoute,
 }
 export const routeTree = rootRouteImport

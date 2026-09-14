@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { Search, Settings, Warehouse } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Coins } from "./coins";
 import { getGemRate } from "@/lib/gw2/functions";
@@ -41,17 +42,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
 
           <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
-            <aside className="gw2-sidebar shrink-0 sm:w-56">
+            <aside className="gw2-sidebar flex shrink-0 flex-col sm:w-56">
               <p className="hidden px-4 pb-2 pt-3 text-xs text-muted-foreground sm:block">Menu</p>
-              <nav className="flex gap-1 overflow-x-auto px-0 pb-2 sm:flex-col sm:gap-0 sm:overflow-visible">
-                <NavLink to="/" active={pathname === "/"}>
-                  Check
+              <nav className="flex flex-1 gap-1 overflow-x-auto px-0 pb-2 sm:flex-col sm:gap-0 sm:overflow-visible sm:pb-3">
+                <NavLink to="/" active={pathname === "/"} icon={<Search className="size-4" />}>
+                  Price Check
                 </NavLink>
-                <NavLink to="/vault" active={pathname === "/vault"}>
+                <NavLink to="/vault" active={pathname === "/vault"} icon={<Warehouse className="size-4" />}>
                   Vault
                 </NavLink>
-                <NavLink to="/options" active={pathname === "/options"}>
-                  Options
+                <span className="hidden flex-1 sm:block" />
+                <NavLink
+                  to="/settings"
+                  active={pathname === "/settings" || pathname === "/options"}
+                  icon={<Settings className="size-4" />}
+                >
+                  Settings
                 </NavLink>
               </nav>
             </aside>
@@ -68,20 +74,23 @@ export function AppShell({ children }: { children: ReactNode }) {
 function NavLink({
   to,
   active,
+  icon,
   children,
 }: {
-  to: "/" | "/vault" | "/options";
+  to: "/" | "/vault" | "/settings";
   active: boolean;
+  icon: ReactNode;
   children: ReactNode;
 }) {
   return (
     <Link
       to={to}
       className={cn(
-        "inline-flex h-9 min-w-28 shrink-0 items-center px-4 text-sm sm:min-w-0 sm:w-full",
+        "inline-flex h-9 min-w-28 shrink-0 items-center gap-2 px-4 text-sm sm:min-w-0 sm:w-full",
         active ? "bg-select text-select-foreground" : "text-foreground/90 hover:bg-secondary/80",
       )}
     >
+      {icon}
       {children}
     </Link>
   );

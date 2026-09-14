@@ -5,6 +5,10 @@ export type AppSettings = {
   hotkey: string;
   tray: boolean;
   alwaysOnTop: boolean;
+  installDir: string;
+  autoUpdate: boolean;
+  preferredVersion: string;
+  githubToken: string;
 };
 
 const KEY = "tyria-ledger.desktop";
@@ -14,6 +18,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   hotkey: "Control+Shift+L",
   tray: true,
   alwaysOnTop: true,
+  installDir: "",
+  autoUpdate: true,
+  preferredVersion: "latest",
+  githubToken: "",
 };
 
 export function loadSettings(): AppSettings {
@@ -27,6 +35,12 @@ export function loadSettings(): AppSettings {
       hotkey: typeof parsed.hotkey === "string" && parsed.hotkey ? parsed.hotkey : DEFAULT_SETTINGS.hotkey,
       tray: parsed.tray !== false,
       alwaysOnTop: parsed.alwaysOnTop !== false,
+      installDir: typeof parsed.installDir === "string" ? parsed.installDir : "",
+      autoUpdate: parsed.autoUpdate !== false,
+      preferredVersion: typeof parsed.preferredVersion === "string" && parsed.preferredVersion
+        ? parsed.preferredVersion
+        : "latest",
+      githubToken: typeof parsed.githubToken === "string" ? parsed.githubToken : "",
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

@@ -3,7 +3,7 @@ import { Coins } from "@/components/coins";
 import { FavoriteStar } from "@/components/favorites";
 import { Inspectable } from "@/components/item-tooltip";
 import { RarityLabel } from "@/components/rarity";
-import { appraiseVault, type FenceTip } from "@/lib/gw2/fence";
+import { appraiseVault, type FenceHome, type FenceTip } from "@/lib/gw2/fence";
 import type { VaultSnapshot } from "@/lib/gw2/types";
 
 export function FenceBoard({ snapshot, query }: { snapshot: VaultSnapshot; query: string }) {
@@ -19,7 +19,7 @@ export function FenceBoard({ snapshot, query }: { snapshot: VaultSnapshot; query
         <h2 className="mt-1 font-display text-3xl tracking-tight">Show me the bags</h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Appraisal of what you can actually sell, then the quiet part: what to dump, what to list, and
-          which spreads are a trap after the 15%.
+          which spreads are a trap after the 15%. Each name says where it sits and who to log.
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <Mini label="Dump it now" hint="Buy orders, after tax" value={brief.dumpTotal} />
@@ -86,6 +86,25 @@ function Mini({ label, hint, value }: { label: string; hint: string; value: numb
   );
 }
 
+function Homes({ homes }: { homes: FenceHome[] }) {
+  if (!homes.length) return null;
+  return (
+    <p className="mt-1 flex flex-wrap gap-1.5">
+      {homes.map((home) => (
+        <span
+          key={`${home.kind}:${home.label}`}
+          className="inline-flex items-center gap-1 rounded-sm border border-border bg-secondary/80 px-1.5 py-0.5 text-[11px] text-foreground/90"
+        >
+          <span className={home.kind === "character" ? "text-coin-gold" : "text-muted-foreground"}>
+            {home.label}
+          </span>
+          <span className="text-muted-foreground">×{home.count.toLocaleString()}</span>
+        </span>
+      ))}
+    </p>
+  );
+}
+
 function TipList({
   title,
   empty,
@@ -106,7 +125,7 @@ function TipList({
         <div className="mt-3 overflow-hidden rounded-2xl border border-border">
           <div className="hidden grid-cols-[auto_1fr_auto] gap-2 border-b border-border bg-secondary/40 px-3 py-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground sm:grid">
             <span className="w-10" />
-            <span>Item</span>
+            <span>Item · where</span>
             <span>{amountLabel}</span>
           </div>
           {rows.map((row) => (
@@ -121,8 +140,9 @@ function TipList({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm">{row.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    <RarityLabel rarity={row.rarity} /> · ×{row.count.toLocaleString()} · {row.note}
+                    <RarityLabel rarity={row.rarity} /> · ×{row.count.toLocaleString()} total · {row.note}
                   </p>
+                  <Homes homes={row.homes} />
                 </div>
                 <Coins copper={row.amount} size="sm" />
               </Inspectable>

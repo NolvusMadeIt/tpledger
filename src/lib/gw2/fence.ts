@@ -1,6 +1,12 @@
-import type { VaultLine, VaultSnapshot } from "./types";
+import type { VaultLine, VaultLocation, VaultSnapshot } from "./types";
 
-export type FenceStack = VaultLine & { dump: number; list: number };
+export type FenceHome = {
+  label: string;
+  kind: VaultLocation["kind"];
+  count: number;
+};
+
+export type FenceStack = VaultLine & { dump: number; list: number; homes: FenceHome[] };
 
 export type FenceTip = {
   id: number;
@@ -10,6 +16,7 @@ export type FenceTip = {
   count: number;
   amount: number;
   note: string;
+  homes: FenceHome[];
 };
 
 export type FenceBrief = {
@@ -25,25 +32,57 @@ export type FenceBrief = {
   secrets: string[];
 };
 
+function homeLabel(loc: VaultLocation): string {
+  if (loc.kind === "bank") return "Bank";
+  if (loc.kind === "materials") return "Mats";
+  if (loc.kind === "shared") return "Shared";
+  return loc.label;
+}
+
 function merge(snapshot: VaultSnapshot): FenceStack[] {
   const map = new Map<number, FenceStack>();
   for (const loc of snapshot.locations) {
     for (const item of loc.items) {
       const prev = map.get(item.id);
+      const home: FenceHome = { label: homeLabel(loc), kind: loc.kind, count: item.count };
       if (prev) {
         prev.count += item.count;
         prev.dump = prev.instantSell * prev.count;
         prev.list = prev.listNet * prev.count;
+        const existing = prev.homes.find((row) => row.label === home.label && row.kind === home.kind);
+        if (existing) existing.count += home.count;
+        else prev.homes.push(home);
       } else {
         map.set(item.id, {
           ...item,
           dump: item.instantSell * item.count,
           list: item.listNet * item.count,
+          homes: [home],
         });
       }
     }
   }
-  return [...map.values()];
+  return [...map.values()].map((row) => ({
+    ...row,
+    homes: [...row.homes].sort((a, b) => b.count - a.count),
+  }));
+}
+
+function tip(
+  s: FenceStack,
+  amount: number,
+  note: string,
+): FenceTip {
+  return {
+    id: s.id,
+    name: s.name,
+    icon: s.icon,
+    rarity: s.rarity,
+    count: s.count,
+    amount,
+    note,
+    homes: s.homes,
+  };
 }
 
 export function appraiseVault(snapshot: VaultSnapshot, query = ""): FenceBrief {
@@ -63,15 +102,11 @@ export function appraiseVault(snapshot: VaultSnapshot, query = ""): FenceBrief {
     .slice(0, 8)
     .map((s) => {
       const share = dumpTotal ? Math.round((s.dump / dumpTotal) * 100) : 0;
-      return {
-        id: s.id,
-        name: s.name,
-        icon: s.icon,
-        rarity: s.rarity,
-        count: s.count,
-        amount: s.dump,
-        note: share >= 8 ? `${share}% of a dump. This is the bag.` : "Worth moving. Not the whole story.",
-      };
+      return tip(
+        s,
+        s.dump,
+        share >= 8 ? `${share}% of a dump. This is the bag.` : "Worth moving. Not the whole story.",
+      );
     });
 
   const listThese = [...stacks]
@@ -79,18 +114,15 @@ export function appraiseVault(snapshot: VaultSnapshot, query = ""): FenceBrief {
     .filter(({ s, extra }) => s.traded && extra >= 10000 && s.sell > s.buy)
     .sort((a, b) => b.extra - a.extra)
     .slice(0, 8)
-    .map(({ s, extra }) => ({
-      id: s.id,
-      name: s.name,
-      icon: s.icon,
-      rarity: s.rarity,
-      count: s.count,
-      amount: extra,
-      note:
+    .map(({ s, extra }) =>
+      tip(
+        s,
+        extra,
         s.buyQuantity >= 500
           ? "Buy wall is thick — dumping is easy, listing pays more."
           : "Thin demand. Don't eat the buy order; list it.",
-    }));
+      ),
+    );
 
   const flips = [...stacks]
     .map((s) => {
@@ -101,46 +133,34 @@ export function appraiseVault(snapshot: VaultSnapshot, query = ""): FenceBrief {
     .filter(({ s, each }) => s.traded && s.buy > 0 && s.sell > 0 && each >= 50)
     .sort((a, b) => b.each * Math.min(b.s.count, 250) - a.each * Math.min(a.s.count, 250))
     .slice(0, 8)
-    .map(({ s, each, thin }) => ({
-      id: s.id,
-      name: s.name,
-      icon: s.icon,
-      rarity: s.rarity,
-      count: s.count,
-      amount: each,
-      note: thin
-        ? `Edge is ${formatCopper(each)} each after tax, but the book is thin. Small clips only.`
-        : `Bid the buy, undercut the sell. ${formatCopper(each)} each after the 15%.`,
-    }));
+    .map(({ s, each, thin }) =>
+      tip(
+        s,
+        each,
+        thin
+          ? `Edge is ${formatCopper(each)} each after tax, but the book is thin. Small clips only.`
+          : `Bid the buy, undercut the sell. ${formatCopper(each)} each after the 15%.`,
+      ),
+    );
 
   const traps = [...stacks]
     .map((s) => ({ s, gross: s.sell - s.buy, net: s.listNet - s.buy }))
     .filter(({ s, gross, net }) => s.traded && s.buy > 0 && gross >= Math.max(50, s.buy * 0.04) && net <= 0)
     .sort((a, b) => b.gross - a.gross)
     .slice(0, 6)
-    .map(({ s, gross }) => ({
-      id: s.id,
-      name: s.name,
-      icon: s.icon,
-      rarity: s.rarity,
-      count: s.count,
-      amount: gross,
-      note: "Looks like a spread. Tax eats it. Do not buy these to relist.",
-    }));
+    .map(({ s, gross }) => tip(s, gross, "Looks like a spread. Tax eats it. Do not buy these to relist."));
 
   const dead = [...stacks]
     .filter((s) => !s.traded || (s.buy <= 0 && s.sell <= 0))
     .sort((a, b) => b.count - a.count)
     .slice(0, 8)
-    .map((s) => ({
-      id: s.id,
-      name: s.name,
-      icon: s.icon,
-      rarity: s.rarity,
-      count: s.count,
-      amount: s.vendor * s.count,
-      note: s.vendor > 0 ? "No TP. Vendor if you need the slot." : "No TP and no vendor. Keep or destroy.",
-    }));
+    .map((s) =>
+      tip(
+        s,
+        s.vendor * s.count,
+        s.vendor > 0 ? "No TP. Vendor if you need the slot." : "No TP and no vendor. Keep or destroy.",
+      ),
+    );
 
   const topShare = dumpTotal
     ? holdings.slice(0, 3).reduce((n, h) => n + h.amount, 0) / dumpTotal

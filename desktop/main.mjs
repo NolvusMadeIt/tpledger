@@ -4,6 +4,14 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  APP_VERSION,
+  installVersion,
+  listVersions,
+  pickInstallDir,
+  pickTarget,
+  toastUpdate,
+} from "./updater.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 17331;
@@ -14,6 +22,10 @@ const DEFAULTS = {
   hotkey: "Control+Shift+L",
   tray: true,
   alwaysOnTop: true,
+  installDir: "",
+  autoUpdate: true,
+  preferredVersion: "latest",
+  githubToken: "",
 };
 
 let win = null;
@@ -22,6 +34,11 @@ let server = null;
 let visible = true;
 let settings = { ...DEFAULTS };
 let watchers = [];
+let lastVersions = [];
+
+function emitStatus(status) {
+  win?.webContents.send("updater:status", status);
+}
 
 function loadSettings() {
   try {
@@ -280,6 +297,32 @@ async function createWindow() {
   });
 }
 
+async function runUpdateCheck() {
+  try {
+    lastVersions = await listVersions(settings.githubToken);
+    const target = pickTarget(lastVersions, settings.preferredVersion);
+    if (target && !target.current && target.downloadUrl) {
+      emitStatus({ state: "ready", message: `${target.label} is ready.` });
+      if (settings.autoUpdate) {
+        toastUpdate(target, () => {
+          void installVersion({
+            version: target,
+            installDir: settings.installDir || path.dirname(process.execPath),
+            token: settings.githubToken,
+            onStatus: emitStatus,
+          });
+        });
+      }
+      return target;
+    }
+    emitStatus({ state: "idle", message: "You're on this version." });
+    return null;
+  } catch (err) {
+    emitStatus({ state: "error", message: err instanceof Error ? err.message : "Check failed." });
+    return null;
+  }
+}
+
 ipcMain.handle("desktop:getSettings", () => settings);
 ipcMain.handle("desktop:setSettings", (_e, next) => {
   settings = { ...settings, ...next };
@@ -296,18 +339,65 @@ ipcMain.handle("plugins:openFolder", async () => {
 ipcMain.handle("desktop:hide", () => {
   hidePanel();
 });
+ipcMain.handle("updater:version", () => APP_VERSION);
+ipcMain.handle("updater:list", async () => {
+  emitStatus({ state: "checking", message: "Checking the repo…" });
+  try {
+    lastVersions = await listVersions(settings.githubToken);
+    emitStatus({ state: "idle", message: lastVersions.length ? "Versions loaded." : "No version branches yet." });
+    return lastVersions;
+  } catch (err) {
+    emitStatus({ state: "error", message: err instanceof Error ? err.message : "Could not read versions." });
+    throw err;
+  }
+});
+ipcMain.handle("updater:pickFolder", async () => {
+  const dir = await pickInstallDir(win, settings.installDir);
+  if (dir) {
+    settings.installDir = dir;
+    saveSettings();
+  }
+  return dir;
+});
+ipcMain.handle("updater:install", async (_e, id) => {
+  const versions = lastVersions.length ? lastVersions : await listVersions(settings.githubToken);
+  lastVersions = versions;
+  const version = pickTarget(versions, id || settings.preferredVersion);
+  if (!version) throw new Error("No version to install.");
+  const dir = settings.installDir || (app.isPackaged ? path.dirname(process.execPath) : "");
+  if (!dir) throw new Error("Pick a folder first.");
+  settings.installDir = dir;
+  saveSettings();
+  await installVersion({
+    version,
+    installDir: dir,
+    token: settings.githubToken,
+    onStatus: emitStatus,
+  });
+});
+ipcMain.handle("updater:check", () => runUpdateCheck());
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 } else {
+  app.setAppUserModelId("com.tyrialedger.app");
   app.on("second-instance", showPanel);
   app.whenReady().then(async () => {
     loadSettings();
+    if (!settings.installDir && app.isPackaged) {
+      settings.installDir = path.dirname(process.execPath);
+      saveSettings();
+    }
     createTray();
     bindHotkey();
     watchPlugins();
     await createWindow();
+    if (settings.autoUpdate) {
+      setTimeout(() => {
+        void runUpdateCheck();
+      }, 4000);
+    }
   });
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "tyria-ledger",
   "productName": "Tyria Ledger",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "main": "main.mjs",

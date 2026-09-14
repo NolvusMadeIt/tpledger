@@ -2,15 +2,7 @@
 
 Guild Wars 2 price checker, vault, fence, overlay, and plugins.
 
-## Download (Windows)
-
-[**Tyria Ledger 1.0.0**](https://github.com/NolvusMadeIt/tpledger/releases/tag/v1.0.0) — unzip and run `Tyria Ledger.exe`.
-
-- Closes to the tray (mystic coin icon)
-- Hotkey `Control+Shift+L` slides from the left or right (set in Options)
-- Drop plugin folders into `plugins/` next to the exe
-
-## Web (dev)
+## Web
 
 ```bash
 npm install
@@ -19,8 +11,18 @@ npm run dev
 
 API keys stay on the device. Bound items are never listed.
 
-## Rebuild the exe
+## Desktop (Windows)
 
 ```bash
 node desktop/pack-win.mjs
 ```
+
+Output: `apps/Tyria Ledger-win32-x64/Tyria Ledger.exe` (mystic coin icon).
+
+- Close / hotkey (`Control+Shift+L` by default) hides next to the clock.
+- Dock left or right in Options.
+- Drop plugin folders into `plugins/` beside the exe, or onto Options.
+
+## Plugins
+
+See `public/plugins/README.md`. Bundled: Flip Watch, Chat Copy.
